@@ -1,0 +1,27 @@
+/* $This file is distributed under the terms of the license in /doc/license.txt$ */
+
+#overlay-bg {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    height:100%;
+    width: 100%;
+	padding-bottom: 200px;
+    cursor: pointer;
+    z-index: 1000; /* high z-index */
+    background: #000; /* fallback */
+    background: rgba(0,0,0,0.75);
+}
+.overlay-content {
+    background: #fff;
+    padding: 1%;
+    width: 64%;
+    position: relative;
+    top: 12%;
+    left: 38%;
+    margin: 0 0 0 -20%; /* add negative left margin for half the width to center the div */
+    cursor: default;
+    border-radius: 4px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.9);
+}

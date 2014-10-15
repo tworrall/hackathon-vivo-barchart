@@ -1,0 +1,101 @@
+# $This file is distributed under the terms of the license in /doc/license.txt$ 
+
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix display: <http://vitro.mannlib.cornell.edu/ontologies/display/1.1#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix core: <http://vivoweb.org/ontology/core#> .
+@prefix vivoweb: <http://vivoweb.org/ontology#> .
+
+ 
+
+
+<http://vivo.library.cornell.edu/ns/0.1#CornellCollegeOrProfessionalSchool> display:hasDataGetter display:grantsByDeptSchoolDataGetter .
+
+display:grantsByDeptSchoolDataGetter
+    a <java:edu.cornell.mannlib.vitro.webapp.utils.dataGetter.SparqlQueryDataGetter>;
+    display:saveToVar "grantsDeptSchoolResults";
+    display:query """
+	PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+	PREFIX vivo: <http://vivoweb.org/ontology/core#>
+	PREFIX afn:   <http://jena.hpl.hp.com/ARQ/function#>
+	PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+	PREFIX obo:      <http://purl.obolibrary.org/obo/>
+	SELECT DISTINCT (COUNT(?grant) as ?ct) ?label ?sYear
+	WHERE {
+	    ?individualURI obo:BFO_0000051 ?dept .
+	    ?dept a vivo:AcademicDepartment .
+	    ?dept rdfs:label ?label .             
+	    ?dept vivo:relatedBy ?posn .
+	    ?posn a vivo:Position .
+	    ?posn  vivo:relates ?person .
+		?person a foaf:Person .
+		?person obo:RO_0000053 ?role .
+		?role a vivo:ResearcherRole .
+		?role vivo:relatedBy ?grant .
+		?grant a vivo:Grant .
+		?grant rdfs:label ?gLabel .
+		?grant vivo:dateTimeInterval ?dti .
+		?dti vivo:start ?start.
+	    ?start vivo:dateTime ?sdt
+	    BIND (year(?sdt) AS ?sYear)
+	    FILTER (year(?sdt) > (year(afn:now())-5))
+	}
+	GROUP BY ?label ?sYear
+	ORDER BY ?label ASC(?sYear)
+    """ .
+
+
+	<freemarker:individual-dept-active-grants.ftl> display:hasDataGetter display:deptGrantsVizSchoolDataGetter .
+
+	display:deptGrantsVizSchoolDataGetter
+	    a <java:edu.cornell.mannlib.vitro.webapp.utils.dataGetter.SparqlQueryDataGetter>;
+	    display:saveToVar "deptGrantsVizSchoolResults";
+	    display:query """
+		PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+		PREFIX vivo: <http://vivoweb.org/ontology/core#>
+		PREFIX afn:   <http://jena.hpl.hp.com/ARQ/function#>
+		PREFIX foaf: <http://xmlns.com/foaf/0.1/>
+		PREFIX obo:      <http://purl.obolibrary.org/obo/>
+		PREFIX vitro:    <http://vitro.mannlib.cornell.edu/ns/vitro/0.7#>
+		SELECT DISTINCT ?sYear ?type (str(?slabel) AS ?school) (COUNT(?grant) as ?ct) 
+		WHERE { {
+			?individualURI obo:BFO_0000050 ?college .
+			?college rdfs:label ?slabel .
+		        ?college obo:BFO_0000051 ?dept .
+		        ?dept a vivo:AcademicDepartment .
+			?dept vivo:relatedBy ?posn .
+		        ?posn a vivo:Position .
+		        ?posn  vivo:relates ?person .
+			?person a foaf:Person .
+			?person obo:RO_0000053 ?role .
+			?role a vivo:ResearcherRole .
+			?role vivo:relatedBy ?grant .
+			?grant a vivo:Grant .
+			?grant vivo:dateTimeInterval ?dti .
+			?dti vivo:start ?start.
+			?start vivo:dateTime ?sdt
+		        BIND (str("the college") AS ?type)
+			BIND (year(?sdt) AS ?sYear)
+		        FILTER (year(?sdt) > (year(afn:now())-5))
+		} UNION {
+			?individualURI rdfs:label ?slabel .             
+			?individualURI vivo:relatedBy ?posn .
+		        ?posn a vivo:Position .
+		        ?posn  vivo:relates ?person .
+			?person a foaf:Person .
+			?person obo:RO_0000053 ?role .
+			?role a vivo:ResearcherRole .
+			?role vivo:relatedBy ?grant .
+			?grant a vivo:Grant .
+			?grant vivo:dateTimeInterval ?dti .
+			?dti vivo:start ?start.
+			?start vivo:dateTime ?sdt
+		        BIND (str("a dept") AS ?type)
+			BIND (year(?sdt) AS ?sYear)
+		        FILTER (year(?sdt) > (year(afn:now())-5))
+
+		} }
+		GROUP BY ?sYear ?type ?slabel
+		ORDER BY ?sYear ?type ?slabel 
+	    """ .
