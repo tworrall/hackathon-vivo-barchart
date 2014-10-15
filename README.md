@@ -1,4 +1,4 @@
-hackathon-vivo-viz
+hackathon-vivo-barchart
 ==================
 
 VIVO visualization using Vega and D3
